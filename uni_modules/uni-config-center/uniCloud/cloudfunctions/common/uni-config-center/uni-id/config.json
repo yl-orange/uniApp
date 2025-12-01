@@ -1,0 +1,12 @@
+{
+  "dcloudAppid": "__UNI__B62FF0C",
+  "mp-weixin": {
+    "tokenExpiresIn": 259200,
+    "oauth": {
+      "weixin": {
+        "appid": "wxa4a04430cea6ff89",
+        "appsecret": "96d83be5cf50d38a7c7fbf80adb72e64"
+      }
+    }
+  }
+}
