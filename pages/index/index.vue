@@ -7,6 +7,12 @@
                 <view class="actions">
                         <button type="primary" class="subscribe-btn" @click="requestSubscribe">订阅通知</button>
                         <text class="hint">点击按钮，打开微信小程序订阅授权并选择允许。</text>
+                        <button type="primary" class="login-btn" :loading="loggingIn" @click="weixinLogin">微信一键登录</button>
+                        <view v-if="token" class="result">
+                                <text>UID：{{ uid }}</text>
+                                <text>Token：{{ token }}</text>
+                                <text>过期时间：{{ tokenExpired }}</text>
+                        </view>
                 </view>
         </view>
 </template>
@@ -16,7 +22,11 @@
                 data() {
                         return {
                                 title: 'Hello',
-                                tmplIds: ['WhDz7V9NVqZi6Fo3K0-CB7TJuOlU21LhOlo9YaoXsc8']
+                                tmplIds: ['WhDz7V9NVqZi6Fo3K0-CB7TJuOlU21LhOlo9YaoXsc8'],
+                                token: '',
+                                tokenExpired: '',
+                                uid: '',
+                                loggingIn: false
                         }
                 },
                 onLoad() {
@@ -53,6 +63,56 @@
                                 // #ifndef MP-WEIXIN
                                 uni.showToast({
                                         title: '当前平台暂不支持订阅消息',
+                                        icon: 'none'
+                                })
+                                // #endif
+                        },
+                        async weixinLogin() {
+                                // #ifdef MP-WEIXIN
+                                if (this.loggingIn) return
+                                this.loggingIn = true
+                                try {
+                                        const loginRes = await new Promise((resolve, reject) => {
+                                                uni.login({
+                                                        provider: 'weixin',
+                                                        success: resolve,
+                                                        fail: reject
+                                                })
+                                        })
+
+                                        const { result } = await uniCloud.callFunction({
+                                                name: 'weixinLogin',
+                                                data: {
+                                                        code: loginRes.code
+                                                }
+                                        })
+
+                                        if (result.errCode) {
+                                                throw new Error(result.errMsg || '登录失败')
+                                        }
+
+                                        this.token = result.token
+                                        this.tokenExpired = result.tokenExpired
+                                        this.uid = result.uid
+                                        uni.setStorageSync('uni_id_token', result.token)
+                                        uni.setStorageSync('uni_id_token_expired', result.tokenExpired)
+                                        uni.showToast({
+                                                title: '登录成功',
+                                                icon: 'success'
+                                        })
+                                } catch (error) {
+                                        console.error('weixinLogin error', error)
+                                        uni.showToast({
+                                                title: error.message || '微信登录失败',
+                                                icon: 'none'
+                                        })
+                                } finally {
+                                        this.loggingIn = false
+                                }
+                                // #endif
+                                // #ifndef MP-WEIXIN
+                                uni.showToast({
+                                        title: '请在微信小程序中使用一键登录',
                                         icon: 'none'
                                 })
                                 // #endif
@@ -101,10 +161,24 @@
                 width: 100%;
         }
 
+        .login-btn {
+                width: 100%;
+        }
+
         .hint {
                 font-size: 24rpx;
                 color: #666;
                 text-align: center;
                 line-height: 1.5;
+        }
+
+        .result {
+                display: flex;
+                flex-direction: column;
+                gap: 10rpx;
+                width: 100%;
+                word-break: break-all;
+                font-size: 26rpx;
+                color: #333;
         }
 </style>
