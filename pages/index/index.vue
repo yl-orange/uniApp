@@ -16,8 +16,7 @@
                 data() {
                         return {
                                 title: 'Hello',
-                                // 请将以下模板 ID 替换为你在微信公众平台申请的订阅消息模板 ID
-                                tmplIds: ['请替换为你的模板ID']
+                                tmplIds: ['WhDz7V9NVqZi6Fo3K0-CB7TJuOlU21LhOlo9YaoXsc8']
                         }
                 },
                 onLoad() {

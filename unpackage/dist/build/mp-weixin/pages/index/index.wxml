@@ -1,1 +1,1 @@
-<view class="content"><image class="logo" src="{{a}}"></image><view class="text-area"><text class="title">{{b}}</text></view></view>
+<view class="content"><image class="logo" src="{{a}}"></image><view class="text-area"><text class="title">{{b}}</text></view><view class="actions"><button type="primary" class="subscribe-btn" bindtap="{{c}}">订阅通知</button><text class="hint">点击按钮，打开微信小程序订阅授权并选择允许。</text></view></view>
