@@ -48,23 +48,24 @@
                         })
                       })
                 
-                      // 2. 通过 uni-id-co 登录
-                      const uniIdCo = uniCloud.importObject('uni-id-co')
-                      const res = await uniIdCo.loginByWeixin({
-                        code: loginRes.code
-                        // 如果有邀请注册，可以再传 inviteCode
+                      // 2. 调用云函数 weixinLogin 处理登录
+                      const { result } = await uniCloud.callFunction({
+                        name: 'weixinLogin',
+                        data: {
+                          code: loginRes.code
+                          // 如果有邀请注册，可以再传 inviteCode
+                        }
                       })
-                
-                      if (res.errCode) {
-                        throw new Error(res.errMsg || '登录失败')
+
+                      if (result.errCode) {
+                        throw new Error(result.errMsg || '登录失败')
                       }
-                
-                      // 注意：uni-id-co 把 token 放在 newToken 里
-                      const { token, tokenExpired } = res.newToken || {}
-                
+
+                      const { token, tokenExpired, uid } = result
+
                       this.token = token
                       this.tokenExpired = tokenExpired
-                      this.uid = res.uid
+                      this.uid = uid
                 
                       uni.setStorageSync('uni_id_token', token)
                       uni.setStorageSync('uni_id_token_expired', tokenExpired)
