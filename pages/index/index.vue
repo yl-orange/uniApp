@@ -33,90 +33,64 @@
 
                 },
                 methods: {
-                        requestSubscribe() {
-                                // #ifdef MP-WEIXIN
-                                if (!this.tmplIds || this.tmplIds.length === 0) {
-                                        uni.showToast({
-                                                title: '请先配置模板 ID',
-                                                icon: 'none'
-                                        })
-                                        return
-                                }
-                                uni.requestSubscribeMessage({
-                                        tmplIds: this.tmplIds,
-                                        success: (res) => {
-                                                const accepted = Object.values(res).some((item) => item === 'accept')
-                                                uni.showToast({
-                                                        title: accepted ? '订阅成功' : '未订阅通知',
-                                                        icon: accepted ? 'success' : 'none'
-                                                })
-                                        },
-                                        fail: (err) => {
-                                                console.error('requestSubscribeMessage fail', err)
-                                                uni.showToast({
-                                                        title: '订阅失败，请稍后重试',
-                                                        icon: 'none'
-                                                })
-                                        }
-                                })
-                                // #endif
-                                // #ifndef MP-WEIXIN
-                                uni.showToast({
-                                        title: '当前平台暂不支持订阅消息',
-                                        icon: 'none'
-                                })
-                                // #endif
-                        },
-                        async weixinLogin() {
-                                // #ifdef MP-WEIXIN
-                                if (this.loggingIn) return
-                                this.loggingIn = true
-                                try {
-                                        const loginRes = await new Promise((resolve, reject) => {
-                                                uni.login({
-                                                        provider: 'weixin',
-                                                        success: resolve,
-                                                        fail: reject
-                                                })
-                                        })
-
-                                        const { result } = await uniCloud.callFunction({
-                                                name: 'weixinLogin',
-                                                data: {
-                                                        code: loginRes.code
-                                                }
-                                        })
-
-                                        if (result.errCode) {
-                                                throw new Error(result.errMsg || '登录失败')
-                                        }
-
-                                        this.token = result.token
-                                        this.tokenExpired = result.tokenExpired
-                                        this.uid = result.uid
-                                        uni.setStorageSync('uni_id_token', result.token)
-                                        uni.setStorageSync('uni_id_token_expired', result.tokenExpired)
-                                        uni.showToast({
-                                                title: '登录成功',
-                                                icon: 'success'
-                                        })
-                                } catch (error) {
-                                        console.error('weixinLogin error', error)
-                                        uni.showToast({
-                                                title: error.message || '微信登录失败',
-                                                icon: 'none'
-                                        })
-                                } finally {
-                                        this.loggingIn = false
-                                }
-                                // #endif
-                                // #ifndef MP-WEIXIN
-                                uni.showToast({
-                                        title: '请在微信小程序中使用一键登录',
-                                        icon: 'none'
-                                })
-                                // #endif
-                        }
+                  async weixinLogin() {
+                    // #ifdef MP-WEIXIN
+                    if (this.loggingIn) return
+                    this.loggingIn = true
+                
+                    try {
+                      // 1. 获取微信小程序 code
+                      const loginRes = await new Promise((resolve, reject) => {
+                        uni.login({
+                          provider: 'weixin',
+                          success: resolve,
+                          fail: reject
+                        })
+                      })
+                
+                      // 2. 通过 uni-id-co 登录
+                      const uniIdCo = uniCloud.importObject('uni-id-co')
+                      const res = await uniIdCo.loginByWeixin({
+                        code: loginRes.code
+                        // 如果有邀请注册，可以再传 inviteCode
+                      })
+                
+                      if (res.errCode) {
+                        throw new Error(res.errMsg || '登录失败')
+                      }
+                
+                      // 注意：uni-id-co 把 token 放在 newToken 里
+                      const { token, tokenExpired } = res.newToken || {}
+                
+                      this.token = token
+                      this.tokenExpired = tokenExpired
+                      this.uid = res.uid
+                
+                      uni.setStorageSync('uni_id_token', token)
+                      uni.setStorageSync('uni_id_token_expired', tokenExpired)
+                
+                      uni.showToast({
+                        title: '登录成功',
+                        icon: 'success'
+                      })
+                    } catch (error) {
+                      console.error('weixinLogin error', error)
+                      uni.showToast({
+                        title: error.message || '微信登录失败',
+                        icon: 'none'
+                      })
+                    } finally {
+                      this.loggingIn = false
+                    }
+                    // #endif
+                
+                    // #ifndef MP-WEIXIN
+                    uni.showToast({
+                      title: '请在微信小程序中使用一键登录',
+                      icon: 'none'
+                    })
+                    // #endif
+                  }
                 }
         }
 </script>
