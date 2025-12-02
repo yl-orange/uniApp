@@ -1,37 +1,50 @@
 'use strict';
-const {
-	log
-} = require('console');
+const {log} = require('console');
 const UniSubscribemsg = require('uni-subscribemsg');
 
 exports.main = async (event, context) => {
-	let uniSubscribemsg = new UniSubscribemsg({
-		dcloudAppid: "__UNI__B62FF0C",
-		provider: "weixin-mp", // 小程序订阅消息
-	});
 
-	const db = uniCloud.database()
-	const user = await db.collection('uni-id-users')
-		.doc('692e576e680a13cada57e24f') // 这才是 uid / _id
-		.get()
+    // 从url中获取信息
+    // const query = event.queryStringParameters
+    // log('query内容:', query);
+    // const openid = query.openid;
+    // if (!openid) {
+    //     log('缺少 openid');
+    //     return {
+    //         statusCode: 400,
+    //         body: 'missing openid in query',
+    //     };
+    // }
 
-	const openid = user.data[0]['wx_openid']['mp-weixin']
+    // 从body中获取信息
+    log('body内容:', event.body);
+    const body = JSON.parse(event.body)
+    const openid = body.openid;
 
-	let res = await uniSubscribemsg.sendSubscribeMessage({
-		touser: openid, // 小程序用户 openid
-		template_id: "WhDz7V9NVqZi6Fo3K0-CB7TJuOlU21LhOlo9YaoXsc8",
-		page: "pages/index/index",
-		miniprogram_state: "formal", // developer / trial / formal
-		lang: "zh_CN",
-		data: {
-			thing1: { // 活动名称
-				value: "年末霸王餐抽奖"
-			},
-			thing3: { // 温馨提示
-				value: "恭喜中奖，请在今晚21:00前到店核销～"
-			}
-		}
-	});
+    let uniSubscribemsg = new UniSubscribemsg({
+            dcloudAppid: "__UNI__B62FF0C",
+            provider: "weixin-mp",
+        }
+    );
 
-	log("发送消息通知", res);
+    /**
+     * 发送通知消息
+     */
+    let res = await uniSubscribemsg.sendSubscribeMessage({
+        touser: openid,
+        template_id: "WhDz7V9NVqZi6Fo3K0-CB7TJuOlU21LhOlo9YaoXsc8",
+        page: "pages/index/index",
+        miniprogram_state: "formal", // developer,trial,formal
+        lang: "zh_CN",
+        data: {
+            thing1: { // 活动名称
+                value: "你中奖了"
+            },
+            thing3: { // 温馨提示
+                value: "中了100亿，请马上领取～"
+            }
+        }
+    });
+
+    log("发送消息通知", res);
 };
