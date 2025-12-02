@@ -33,6 +33,40 @@
 
                 },
                 methods: {
+                  requestSubscribe() {
+                    // #ifdef MP-WEIXIN
+                    if (!this.tmplIds || this.tmplIds.length === 0) {
+                      uni.showToast({
+                        title: '请先配置模板 ID',
+                        icon: 'none'
+                      })
+                      return
+                    }
+                    uni.requestSubscribeMessage({
+                      tmplIds: this.tmplIds,
+                      success: (res) => {
+                        const accepted = Object.values(res).some((item) => item === 'accept')
+                        uni.showToast({
+                          title: accepted ? '订阅成功' : '未订阅通知',
+                          icon: accepted ? 'success' : 'none'
+                        })
+                      },
+                      fail: (err) => {
+                        console.error('requestSubscribeMessage fail', err)
+                        uni.showToast({
+                          title: '订阅失败，请稍后重试',
+                          icon: 'none'
+                        })
+                      }
+                    })
+                    // #endif
+                    // #ifndef MP-WEIXIN
+                    uni.showToast({
+                      title: '当前平台暂不支持订阅消息',
+                      icon: 'none'
+                    })
+                    // #endif
+                  },
                   async weixinLogin() {
                     // #ifdef MP-WEIXIN
                     if (this.loggingIn) return

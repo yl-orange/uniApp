@@ -1,4 +1,5 @@
 {
+  "tokenSecret": "e923a0f581f262cd8b9e32149506e1d162023356f65908da67ef07a7b3143844",
   "dcloudAppid": "__UNI__B62FF0C",
   "mp-weixin": {
     "tokenExpiresIn": 259200,
