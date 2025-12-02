@@ -44,12 +44,16 @@
                     }
                     uni.requestSubscribeMessage({
                       tmplIds: this.tmplIds,
-                      success: (res) => {
+                      success: async (res) => {
                         const accepted = Object.values(res).some((item) => item === 'accept')
                         uni.showToast({
                           title: accepted ? '订阅成功' : '未订阅通知',
                           icon: accepted ? 'success' : 'none'
                         })
+
+                        if (accepted) {
+                          await this.showOpenidAfterSubscribe()
+                        }
                       },
                       fail: (err) => {
                         console.error('requestSubscribeMessage fail', err)
@@ -124,6 +128,49 @@
                       icon: 'none'
                     })
                     // #endif
+                  },
+                  async showOpenidAfterSubscribe() {
+                    if (!this.uid) {
+                      uni.showToast({
+                        title: '请先登录再获取 openid',
+                        icon: 'none'
+                      })
+                      return
+                    }
+
+                    uni.showLoading({
+                      title: '获取 openid...'
+                    })
+
+                    try {
+                      const { result } = await uniCloud.callFunction({
+                        name: 'getUserOpenid',
+                        data: {
+                          uid: this.uid
+                        }
+                      })
+
+                      const { openid, errMsg } = result || {}
+
+                      if (!openid) {
+                        throw new Error(errMsg || '未能获取 openid')
+                      }
+
+                      console.log('当前 openid:', openid)
+                      uni.showToast({
+                        title: `openid: ${openid}`,
+                        icon: 'none',
+                        duration: 4000
+                      })
+                    } catch (error) {
+                      console.error('showOpenidAfterSubscribe error', error)
+                      uni.showToast({
+                        title: error.message || '获取 openid 失败',
+                        icon: 'none'
+                      })
+                    } finally {
+                      uni.hideLoading()
+                    }
                   }
                 }
         }
