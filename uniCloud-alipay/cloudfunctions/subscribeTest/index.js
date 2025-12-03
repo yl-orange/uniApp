@@ -20,6 +20,7 @@ exports.main = async (event, context) => {
     log('body内容:', event.body);
     const body = JSON.parse(event.body)
     const openid = body.openid;
+    const templateId = body.templateId;
 
     let uniSubscribemsg = new UniSubscribemsg({
             dcloudAppid: "__UNI__B62FF0C",
@@ -32,18 +33,11 @@ exports.main = async (event, context) => {
      */
     let res = await uniSubscribemsg.sendSubscribeMessage({
         touser: openid,
-        template_id: "WhDz7V9NVqZi6Fo3K0-CB7TJuOlU21LhOlo9YaoXsc8",
+        template_id: templateId,
         page: "pages/index/index",
         miniprogram_state: "formal", // developer,trial,formal
         lang: "zh_CN",
-        data: {
-            thing1: { // 活动名称
-                value: "你中奖了"
-            },
-            thing3: { // 温馨提示
-                value: "中了100亿，请马上领取～"
-            }
-        }
+        data: body.data
     });
 
     log("发送消息通知", res);
